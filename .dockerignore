@@ -1,0 +1,30 @@
+# Dependencies
+node_modules
+
+# Build outputs
+.next
+out
+coverage
+playwright-report
+test-results
+
+# Logs and temp files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+tmp
+
+# Git and local configs
+.git
+.gitignore
+.env*
+.idea
+.vscode
+.DS_Store
+plan
+plan/**
+
+# Misc
+coverage/**
+data
