@@ -1,0 +1,19 @@
+# Cloud Build設定
+# カスタム置換変数 `_NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN` をDockerビルドの引数として渡します。
+substitutions:
+  _REGION: asia-northeast1
+  _REPOSITORY: polister
+  _IMAGE: app
+  _TAG: latest
+  _NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN: ""
+images:
+  - ${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPOSITORY}/${_IMAGE}:${_TAG}
+steps:
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - "--build-arg"
+      - NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN=${_NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN}
+      - "-t"
+      - ${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPOSITORY}/${_IMAGE}:${_TAG}
+      - .
