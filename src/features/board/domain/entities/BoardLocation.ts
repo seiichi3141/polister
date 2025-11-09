@@ -8,12 +8,19 @@ import type {
   BoardStatus,
   TrustLevel,
 } from "@/shared/domain/board/BoardAttributes";
+import {
+  BOARD_NUMBER_MAX_LENGTH,
+  BOARD_NUMBER_PATTERN,
+} from "@/shared/domain/board/BoardNumber";
 
 export interface BoardLocationProps {
   id: string;
-  boardNumber: number | null;
+  boardNumber: string | null;
   name: string | null;
   address: string;
+  municipalityId?: string;
+  municipalityName?: string;
+  municipalityPrefecture?: string;
   longitude: number | null;
   latitude: number | null;
   status: BoardStatus;
@@ -57,13 +64,18 @@ export class BoardLocation {
     }
 
     if (props.boardNumber !== null) {
+      if (typeof props.boardNumber !== "string") {
+        throw new Error("BoardLocation boardNumber must be a string");
+      }
+
+      const trimmed = props.boardNumber.trim();
       if (
-        typeof props.boardNumber !== "number" ||
-        !Number.isInteger(props.boardNumber) ||
-        props.boardNumber < 0
+        trimmed.length === 0 ||
+        trimmed.length > BOARD_NUMBER_MAX_LENGTH ||
+        !BOARD_NUMBER_PATTERN.test(trimmed)
       ) {
         throw new Error(
-          "BoardLocation boardNumber must be a non-negative integer"
+          "BoardLocation boardNumber must be a numeric string or `xx-x` format"
         );
       }
     }
@@ -73,7 +85,7 @@ export class BoardLocation {
     return this.props.id;
   }
 
-  get boardNumber(): number | null {
+  get boardNumber(): string | null {
     return this.props.boardNumber;
   }
 
@@ -83,6 +95,18 @@ export class BoardLocation {
 
   get address(): string {
     return this.props.address;
+  }
+
+  get municipalityId(): string | undefined {
+    return this.props.municipalityId;
+  }
+
+  get municipalityName(): string | undefined {
+    return this.props.municipalityName;
+  }
+
+  get municipalityPrefecture(): string | undefined {
+    return this.props.municipalityPrefecture;
   }
 
   get longitude(): number | null {

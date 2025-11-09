@@ -3,7 +3,16 @@ import "reflect-metadata";
 import { PrismaClient } from "@prisma/client";
 import { container, DependencyContainer } from "tsyringe";
 
+import { GetBoardCandidatesUseCase } from "@/features/board-image/application/usecases/GetBoardCandidatesUseCase";
+import { ImportBoardImagesFromCSVUseCase } from "@/features/board-image/application/usecases/ImportBoardImagesFromCSVUseCase";
+import type { IBoardImageRepository } from "@/features/board-image/domain/repositories/IBoardImageRepository";
+import { BoardMatchingService } from "@/features/board-image/domain/services/BoardMatchingService";
+import { BoardImageRepository } from "@/features/board-image/infrastructure/repositories/BoardImageRepository";
+import type { IBoardImportRepository } from "@/features/board-import/domain/repositories/IBoardImportRepository";
+import { BoardImportRepository } from "@/features/board-import/infrastructure/repositories/BoardImportRepository";
+import type { IBoardHistoryRepository } from "@/features/board/domain/repositories/IBoardHistoryRepository";
 import type { IBoardRepository } from "@/features/board/domain/repositories/IBoardRepository";
+import { BoardHistoryRepository } from "@/features/board/infrastructure/repositories/BoardHistoryRepository";
 import { BoardRepository } from "@/features/board/infrastructure/repositories/BoardRepository";
 import type { IMunicipalityRepository } from "@/features/municipality/domain/repositories/IMunicipalityRepository";
 import { MunicipalityRepository } from "@/features/municipality/infrastructure/repositories/MunicipalityRepository";
@@ -11,6 +20,12 @@ import type { IPrefectureRepository } from "@/features/prefecture/domain/reposit
 import { PrefectureRepository } from "@/features/prefecture/infrastructure/repositories/PrefectureRepository";
 import type { IStatisticsRepository } from "@/features/statistics/domain/repositories/IStatisticsRepository";
 import { StatisticsRepository } from "@/features/statistics/infrastructure/repositories/StatisticsRepository";
+import { CloudStorageService } from "@/infrastructure/storage/CloudStorageService";
+import { ExifParserService } from "@/infrastructure/storage/ExifParserService";
+import { GoogleDriveDownloadService } from "@/infrastructure/storage/GoogleDriveDownloadService";
+import { ImageResizeService } from "@/infrastructure/storage/ImageResizeService";
+import type { IStorageService } from "@/infrastructure/storage/IStorageService";
+import { LocalStorageService } from "@/infrastructure/storage/LocalStorageService";
 import type {
   AppLogger,
   DateProvider,
@@ -170,10 +185,88 @@ const registerDefaults = (target: DependencyContainer): void => {
     );
   }
 
+  if (!target.isRegistered(TOKENS.BoardImageRepository)) {
+    target.registerSingleton<IBoardImageRepository>(
+      TOKENS.BoardImageRepository,
+      BoardImageRepository
+    );
+  }
+
+  if (!target.isRegistered(TOKENS.BoardImportRepository)) {
+    target.registerSingleton<IBoardImportRepository>(
+      TOKENS.BoardImportRepository,
+      BoardImportRepository
+    );
+  }
+
+  if (!target.isRegistered(TOKENS.BoardHistoryRepository)) {
+    target.registerSingleton<IBoardHistoryRepository>(
+      TOKENS.BoardHistoryRepository,
+      BoardHistoryRepository
+    );
+  }
+
   if (!target.isRegistered(TOKENS.StatisticsRepository)) {
     target.registerSingleton<IStatisticsRepository>(
       TOKENS.StatisticsRepository,
       StatisticsRepository
+    );
+  }
+
+  // StorageService（環境により切り替え）
+  if (!target.isRegistered(TOKENS.StorageService)) {
+    const StorageImplementation =
+      process.env.NODE_ENV === "production"
+        ? CloudStorageService
+        : LocalStorageService;
+
+    target.registerSingleton<IStorageService>(
+      TOKENS.StorageService,
+      StorageImplementation
+    );
+  }
+
+  // Services
+  if (!target.isRegistered(TOKENS.GoogleDriveDownloadService)) {
+    target.registerSingleton<GoogleDriveDownloadService>(
+      TOKENS.GoogleDriveDownloadService,
+      GoogleDriveDownloadService
+    );
+  }
+
+  if (!target.isRegistered(TOKENS.ImageResizeService)) {
+    target.registerSingleton<ImageResizeService>(
+      TOKENS.ImageResizeService,
+      ImageResizeService
+    );
+  }
+
+  if (!target.isRegistered(TOKENS.ExifParserService)) {
+    target.registerSingleton<ExifParserService>(
+      TOKENS.ExifParserService,
+      ExifParserService
+    );
+  }
+
+  if (!target.isRegistered(TOKENS.BoardMatchingService)) {
+    target.registerSingleton<BoardMatchingService>(
+      TOKENS.BoardMatchingService,
+      BoardMatchingService
+    );
+  }
+
+  // UseCases
+  if (!target.isRegistered(TOKENS.ImportBoardImagesFromCSVUseCase)) {
+    target.registerSingleton<ImportBoardImagesFromCSVUseCase>(
+      TOKENS.ImportBoardImagesFromCSVUseCase,
+      ImportBoardImagesFromCSVUseCase
+    );
+  }
+
+  if (!target.isRegistered(TOKENS.GetBoardCandidatesUseCase)) {
+    target.registerSingleton<GetBoardCandidatesUseCase>(
+      TOKENS.GetBoardCandidatesUseCase,
+      GetBoardCandidatesUseCase
     );
   }
 };
