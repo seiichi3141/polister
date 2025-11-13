@@ -1,18 +1,7 @@
 import { NextResponse } from "next/server";
-import type { NextFetchEvent, NextMiddleware, NextRequest } from "next/server";
-
-import { middlewareAuth } from "@/shared/lib/auth/middleware";
+import type { NextRequest } from "next/server";
 
 const BASIC_REALM = process.env.BASIC_AUTH_REALM ?? "Restricted Area";
-const boardImportAuthMiddleware = middlewareAuth((req, _event) => {
-  if (!req.auth) {
-    const signInUrl = new URL("/auth/signin", req.nextUrl.origin);
-    signInUrl.searchParams.set("callbackUrl", req.nextUrl.href);
-    return NextResponse.redirect(signInUrl);
-  }
-
-  return NextResponse.next();
-}) as unknown as NextMiddleware;
 
 function unauthorizedResponse() {
   return new NextResponse("Authentication required", {
@@ -62,23 +51,11 @@ function handleBasicAuth(request: NextRequest) {
   return null;
 }
 
-function requiresBoardImportAuth(pathname: string) {
-  if (pathname === "/board-imports") {
-    return true;
-  }
-
-  return pathname.startsWith("/board-imports/");
-}
-
-export function middleware(request: NextRequest, event: NextFetchEvent) {
+export function middleware(request: NextRequest) {
   const basicAuthFailure = handleBasicAuth(request);
 
   if (basicAuthFailure) {
     return basicAuthFailure;
-  }
-
-  if (requiresBoardImportAuth(request.nextUrl.pathname)) {
-    return boardImportAuthMiddleware(request, event);
   }
 
   return NextResponse.next();
